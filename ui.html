@@ -1,17 +1,28 @@
-<h2>Rectangle Creator</h2>
-<p>Count: <input id="count" value="5"></p>
-<button id="create">Create</button>
-<button id="cancel">Cancel</button>
+<div id="content"></div>
+
 <script>
+  const sendMessage = (type) => {
+    parent.postMessage({ pluginMessage: { type: type }}, '*')
+  }
 
-document.getElementById('create').onclick = () => {
-  const textbox = document.getElementById('count');
-  const count = parseInt(textbox.value, 10);
-  parent.postMessage({ pluginMessage: { type: 'create-rectangles', count } }, '*')
-}
-
-document.getElementById('cancel').onclick = () => {
-  parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*')
-}
-
+  document.addEventListener('keydown', (e) => {
+    switch (e.key) {
+      case 'a':
+      case 'ArrowLeft':
+        sendMessage('move-left')
+        break
+      case 'd':
+      case 'ArrowRight':
+        sendMessage('move-right')
+        break
+      case 's':
+      case 'ArrowDown':
+        sendMessage('move-down')
+        break
+      case 'w':
+      case 'ArrowUp':
+        sendMessage('move-up')
+        break
+    }
+  })
 </script>

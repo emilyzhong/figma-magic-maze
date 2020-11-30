@@ -1,0 +1,7 @@
+{
+  "name": "Magic Maze",
+  "id": "915315662926466541",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html"
+}

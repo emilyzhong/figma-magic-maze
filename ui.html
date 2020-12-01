@@ -1,4 +1,12 @@
-<div id="content"></div>
+<div id="content">
+  <h3>Select allowed directions</h3>
+  <div class="directions">
+    <label><input type='checkbox' data-direction='up' onclick='handleDirectionSelection(this);'>&uarr; up</label>
+    <label><input type='checkbox' data-direction='down' onclick='handleDirectionSelection(this);'>&darr; down</label>
+    <label><input type='checkbox' data-direction='left' onclick='handleDirectionSelection(this);'>&larr; left</label>
+    <label><input type='checkbox' data-direction='right' onclick='handleDirectionSelection(this);'>&rarr; right</label>
+  </div>
+</div>
 
 <script>
   const sendMessage = (type) => {
@@ -25,4 +33,21 @@
         break
     }
   })
+
+  const handleDirectionSelection = (checkbox) => {
+    const selected = checkbox.checked
+    if (selected) {
+      sendMessage(`select-${checkbox.dataset.direction}`)
+    } else {
+      sendMessage(`deselect-${checkbox.dataset.direction}`)
+    }
+  }
+
 </script>
+
+<style>
+  .directions {
+    display: flex;
+    flex-direction: column;
+  }
+</style>

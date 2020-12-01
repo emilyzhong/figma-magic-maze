@@ -9,8 +9,8 @@ figma.showUI(__html__);
 // callback. The callback will be passed the "pluginMessage" property of the
 // posted message.
 figma.ui.onmessage = msg => {
-    console.log(msg.type);
     switch (msg.type) {
+        // Handle movement
         case 'move-left':
             // Logic to move left
             break;
@@ -23,8 +23,46 @@ figma.ui.onmessage = msg => {
         case 'move-down':
             // Logic to move down
             break;
+        // Handle allowed direction selection.
+        case 'select-up':
+            gameState.allowedDirections.push(Directions.UP);
+            break;
+        case 'select-down':
+            gameState.allowedDirections.push(Directions.DOWN);
+            break;
+        case 'select-left':
+            gameState.allowedDirections.push(Directions.LEFT);
+            break;
+        case 'select-right':
+            gameState.allowedDirections.push(Directions.RIGHT);
+            break;
+        case 'deselect-up':
+            gameState.allowedDirections = gameState.allowedDirections.filter((d) => d !== Directions.UP);
+            break;
+        case 'deselect-down':
+            gameState.allowedDirections = gameState.allowedDirections.filter((d) => d !== Directions.DOWN);
+            break;
+        case 'deselect-left':
+            gameState.allowedDirections = gameState.allowedDirections.filter((d) => d !== Directions.LEFT);
+            break;
+        case 'deselect-right':
+            gameState.allowedDirections = gameState.allowedDirections.filter((d) => d !== Directions.RIGHT);
+            break;
     }
     // Make sure to close the plugin when you're done. Otherwise the plugin will
     // keep running, which shows the cancel button at the bottom of the screen.
     // figma.closePlugin();
+};
+var Directions;
+(function (Directions) {
+    Directions[Directions["UP"] = 0] = "UP";
+    Directions[Directions["DOWN"] = 1] = "DOWN";
+    Directions[Directions["LEFT"] = 2] = "LEFT";
+    Directions[Directions["RIGHT"] = 3] = "RIGHT";
+})(Directions || (Directions = {}));
+const gameState = {
+    allowedDirections: []
+};
+const checkValidDirection = (direction) => {
+    return gameState.allowedDirections.indexOf(direction) !== -1;
 };

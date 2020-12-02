@@ -6,7 +6,7 @@
 // full browser environment (see documentation).
 
 // This shows the HTML page in "ui.html".
-figma.showUI(__html__, { height: 300, width: 300 });
+figma.showUI(__html__, { height: 600, width: 300 });
 
 // Calls to "parent.postMessage" from within the HTML page will trigger this
 // callback. The callback will be passed the "pluginMessage" property of the
@@ -59,6 +59,26 @@ figma.ui.onmessage = msg => {
       break
 
     case 'start-game':
+      // 1. Move the starting tile to the center.
+      showGameTile(1)
+      var tile = getGameTile(1)
+      moveTile(tile, 0, 0)
+
+      // 2. Shuffle and flip over all the other tiles and move them to the side.
+      shuffleGameTiles()
+      for (let i = 2; i <= gameState.numTiles; i++) {
+        hideGameTile(i)
+        tile = getGameTile(i)
+        moveTile(tile, -1200, -1200)
+      }
+
+      // 3. Place the heros on the starting tile.
+      // TODO: randomize starting position
+      moveHero(Hero.MAGE, 200, 200)
+      moveHero(Hero.ELF, 100, 200)
+      moveHero(Hero.DWARF, 100, 100)
+      moveHero(Hero.BARBARIAN, 200, 100)
+
       // TODO: Add other game-starting logic.
       setInterval(updateTimer, 1000)
       break
@@ -76,13 +96,27 @@ enum Directions {
   RIGHT,
 }
 
+enum Hero {
+  MAGE, // purple
+  ELF, // green
+  BARBARIAN, // yellow
+  DWARF // orange
+}
+
+const GAME_PAGENAME = "Game (play here)"
+
 type GameState = {
   allowedDirections: Directions[],
+  numTiles: number,
+  tiles: InstanceNode[]
   // TODO: Add more game-state specific values here.
 }
 
 const gameState: GameState = {
   allowedDirections: [],
+  // TODO: This should be determined by the player
+  numTiles: 12,
+  tiles: []
 }
 
 const checkValidDirection = (direction: Directions) => {
@@ -122,4 +156,94 @@ const updateTimerInSeconds = (timerInSeconds: number) => {
     timerEl.deleteCharacters(0, timerEl.characters.length)
     timerEl.insertCharacters(0, newTime)
   })
+}
+
+const heroToHeroName = (hero: Hero) => {
+  switch(hero) {
+    case Hero.MAGE:
+      return "Mage"
+    case Hero.ELF:
+      return "Elf"
+    case Hero.DWARF:
+      return "Dwarf"
+    case Hero.BARBARIAN:
+      return "Barbarian"
+    default:
+      throw Error("uh-oh")
+  }
+}
+
+const getGamepageNode = () => {
+  for (const page of figma.root.children) {
+    if (page.name == GAME_PAGENAME) {
+      return page
+    }
+  }
+  figma.notify("Couldn't find game page")
+  figma.closePlugin()
+}
+
+// Returns the game tile from cache. If the cache is empty, populate the cache with game tiles.
+const getGameTile = (i: number) => {
+  console.assert(0 < i && i <= gameState.numTiles, `Expected ${i} to be between 0 and ${gameState.numTiles}`)
+  if (gameState.tiles.length === 0) {
+    // leave an empty space for 0-th tile
+    gameState.tiles = new Array(gameState.numTiles + 1)
+
+    const page = getGamepageNode()
+    for (const node of page.children) {
+      if (node.type == "INSTANCE") {
+        const i = parseInt(node.name);
+        gameState.tiles[i] = node
+      }
+    }
+  }
+  return gameState.tiles[i]
+}
+
+const showGameTile = (i: number) => {
+  let tile = getGameTile(i)
+  tile.children[18].visible = false
+}
+
+const hideGameTile = (i: number) => {
+  var tile = getGameTile(i)
+  tile.children[18].visible = true
+}
+
+const shuffleGameTiles = () => {
+  const page = getGamepageNode()
+  let arr = Array.from(page.children)
+  for (let i = 0; i < gameState.numTiles; i++) {
+    const offset = Math.floor(Math.random() * (gameState.numTiles - i));
+    const tmp = gameState.tiles[i]
+    arr[i] = gameState.tiles[i+offset]
+    arr[i+offset] = tmp
+  }
+  for (const tile of arr) {
+    page.appendChild(tile)
+  }
+}
+
+const getHeroNode = (hero: Hero) => {
+  const page = getGamepageNode()
+  for (const node of page.children) {
+    if (node.name === heroToHeroName(hero)) {
+      return node
+    }
+  }
+
+}
+
+const moveTile = (tile: InstanceNode, x: number, y: number) => {
+  tile.x = x
+  tile.y = y
+}
+
+// This function is used to place the hero on the tile at (x, y)
+// where (x, y) is the location of the top left corner.
+const moveHero = (hero: Hero, x: number, y: number) => {
+  let heroNode = getHeroNode(hero)
+  heroNode.x = x + 10
+  heroNode.y = y + 10
 }

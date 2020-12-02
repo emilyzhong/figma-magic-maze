@@ -10,14 +10,43 @@
     <label><input type='checkbox' data-direction='right' onclick='handleDirectionSelection(this);'>&rarr; right</label>
   </div>
   <input type="submit" onclick='startGame();' value="Start game">
+
+  <h3> Select the hero you want to move </h3>
+  <div class="hero">
+    <button type="button" onclick="selectHero('mage')">Mage</button>
+    <button type="button" onclick="selectHero('barbarian')">Barbarian</button>
+    <button type="button" onclick="selectHero('elf')">Elf</button>
+    <button type="button" onclick="selectHero('dwarf')">Dwarf</button>
+  </div>
+
+  <h3> Select the action you want to take </h3>
+  <div class="hero">
+    <button type="button" onclick="moveHero('up')">Up</button>
+    <button type="button" onclick="moveHero('down')">Down</button>
+    <button type="button" onclick="moveHero('left')">Left</button>
+    <button type="button" onclick="moveHero('right')">Right</button>
+  </div>
 </div>
 
 <script>
   var numPlayers = 0;
+  var selectedHero = "mage";
 
   const sendMessage = (type) => {
     parent.postMessage({ pluginMessage: { type: type }}, '*')
   }
+
+  const selectHero = (hero) => {
+    selectedHero = hero
+  }
+
+  const moveHero = (direction) => {
+    parent.postMessage({ pluginMessage: {
+      type: `move-${direction}`,
+      hero: selectedHero
+    }}, '*')
+  }
+
 
   document.addEventListener('keydown', (e) => {
     switch (e.key) {
@@ -45,7 +74,6 @@
   }
 
   const generateTiles = () => {
-    console.log(numPlayers)
     parent.postMessage({ pluginMessage: { type: 'generate-tiles', numPlayers: numPlayers }}, '*')
   }
 

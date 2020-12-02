@@ -84,6 +84,23 @@ const checkValidDirection = (direction: Directions) => {
   return gameState.allowedDirections.indexOf(direction) !== -1
 }
 
-const generateTiles = (numPlayers: int) => {
+const generateTiles = (numPlayers: number) => {
   // TODO: Generate the right move cards for the number of players
+}
+
+const flipTimer = () => {
+  const timerEl = figma.currentPage.findOne((node) => node.name === 'Timer' && node.type === 'TEXT') as TextNode
+  const timeTokens = timerEl.characters.split(':')
+
+  const currRemainingTime = parseInt(timeTokens[0]) * 60 + parseInt(timeTokens[1])
+  const flippedRemainingTime = 60 * 3 - currRemainingTime
+
+  const minutes = Math.floor(flippedRemainingTime / 60)
+  const seconds = flippedRemainingTime - minutes * 60
+  const newTime = `${minutes}:${(`0${seconds}`).slice(-2)}`
+
+  figma.loadFontAsync(timerEl.fontName as FontName).then(() => {
+    timerEl.deleteCharacters(0, timerEl.characters.length)
+    timerEl.insertCharacters(0, newTime)
+  })
 }

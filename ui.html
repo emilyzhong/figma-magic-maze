@@ -9,6 +9,7 @@
     <label><input type='checkbox' data-direction='left' onclick='handleDirectionSelection(this);'>&larr; left</label>
     <label><input type='checkbox' data-direction='right' onclick='handleDirectionSelection(this);'>&rarr; right</label>
   </div>
+  <input type="submit" onclick='startGame();' value="Start game">
 </div>
 
 <script>
@@ -47,6 +48,8 @@
     console.log(numPlayers)
     parent.postMessage({ pluginMessage: { type: 'generate-tiles', numPlayers: numPlayers }}, '*')
   }
+
+  const startGame = () => { sendMessage('start-game') }
 
   const handleDirectionSelection = (checkbox) => {
     const selected = checkbox.checked

@@ -1,4 +1,7 @@
 <div id="content">
+  <h3>How many players (1-7)?</h3>
+  <label><input type='number' min='1' max='7' oninput='handleNumPlayersSelection(this);'> players</label>
+  <input type="submit" onclick='generateTiles();' value="Generate tiles!">
   <h3>Select allowed directions</h3>
   <div class="directions">
     <label><input type='checkbox' data-direction='up' onclick='handleDirectionSelection(this);'>&uarr; up</label>
@@ -9,6 +12,8 @@
 </div>
 
 <script>
+  var numPlayers = 0;
+
   const sendMessage = (type) => {
     parent.postMessage({ pluginMessage: { type: type }}, '*')
   }
@@ -33,6 +38,15 @@
         break
     }
   })
+
+  const handleNumPlayersSelection = (input) => {
+    numPlayers = input.value;
+  }
+
+  const generateTiles = () => {
+    console.log(numPlayers)
+    parent.postMessage({ pluginMessage: { type: 'generate-tiles', numPlayers: numPlayers }}, '*')
+  }
 
   const handleDirectionSelection = (checkbox) => {
     const selected = checkbox.checked

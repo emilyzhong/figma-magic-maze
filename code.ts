@@ -52,6 +52,11 @@ figma.ui.onmessage = msg => {
     case 'deselect-right':
       gameState.allowedDirections = gameState.allowedDirections.filter((d) => d !== Directions.RIGHT)
       break
+
+    // Generate tiles for number of players
+    case 'generate-tiles':
+      generateTiles(msg.numPlayers)
+      break
   }
 
   // Make sure to close the plugin when you're done. Otherwise the plugin will
@@ -77,4 +82,8 @@ const gameState: GameState = {
 
 const checkValidDirection = (direction: Directions) => {
   return gameState.allowedDirections.indexOf(direction) !== -1
+}
+
+const generateTiles = (numPlayers: int) => {
+  // TODO: Generate the right move cards for the number of players
 }

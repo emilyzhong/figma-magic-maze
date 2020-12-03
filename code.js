@@ -13,40 +13,44 @@ figma.ui.onmessage = msg => {
         // Handle movement
         case 'move-left':
             // Logic to move left
+            moveHero(heroNameToHero(msg.hero), Direction.LEFT);
             break;
         case 'move-right':
             // Logic to move right
+            moveHero(heroNameToHero(msg.hero), Direction.RIGHT);
             break;
         case 'move-up':
             // Logic to move up
+            moveHero(heroNameToHero(msg.hero), Direction.UP);
             break;
         case 'move-down':
             // Logic to move down
+            moveHero(heroNameToHero(msg.hero), Direction.DOWN);
             break;
         // Handle allowed direction selection.
         case 'select-up':
-            gameState.allowedDirections.push(Directions.UP);
+            gameState.allowedDirections.push(Direction.UP);
             break;
         case 'select-down':
-            gameState.allowedDirections.push(Directions.DOWN);
+            gameState.allowedDirections.push(Direction.DOWN);
             break;
         case 'select-left':
-            gameState.allowedDirections.push(Directions.LEFT);
+            gameState.allowedDirections.push(Direction.LEFT);
             break;
         case 'select-right':
-            gameState.allowedDirections.push(Directions.RIGHT);
+            gameState.allowedDirections.push(Direction.RIGHT);
             break;
         case 'deselect-up':
-            gameState.allowedDirections = gameState.allowedDirections.filter((d) => d !== Directions.UP);
+            gameState.allowedDirections = gameState.allowedDirections.filter((d) => d !== Direction.UP);
             break;
         case 'deselect-down':
-            gameState.allowedDirections = gameState.allowedDirections.filter((d) => d !== Directions.DOWN);
+            gameState.allowedDirections = gameState.allowedDirections.filter((d) => d !== Direction.DOWN);
             break;
         case 'deselect-left':
-            gameState.allowedDirections = gameState.allowedDirections.filter((d) => d !== Directions.LEFT);
+            gameState.allowedDirections = gameState.allowedDirections.filter((d) => d !== Direction.LEFT);
             break;
         case 'deselect-right':
-            gameState.allowedDirections = gameState.allowedDirections.filter((d) => d !== Directions.RIGHT);
+            gameState.allowedDirections = gameState.allowedDirections.filter((d) => d !== Direction.RIGHT);
             break;
         // Generate tiles for number of players
         case 'generate-tiles':
@@ -56,20 +60,20 @@ figma.ui.onmessage = msg => {
             // 1. Move the starting tile to the center.
             showGameTile(1);
             var tile = getGameTile(1);
-            moveTile(tile, 0, 0);
+            setTileLocation(tile, 0, 0);
             // 2. Shuffle and flip over all the other tiles and move them to the side.
             shuffleGameTiles();
             for (let i = 2; i <= gameState.numTiles; i++) {
                 hideGameTile(i);
                 tile = getGameTile(i);
-                moveTile(tile, -1200, -1200);
+                setTileLocation(tile, -1200, -1200);
             }
             // 3. Place the heros on the starting tile.
             // TODO: randomize starting position
-            moveHero(Hero.MAGE, 200, 200);
-            moveHero(Hero.ELF, 100, 200);
-            moveHero(Hero.DWARF, 100, 100);
-            moveHero(Hero.BARBARIAN, 200, 100);
+            setHeroLocation(Hero.MAGE, 200, 200);
+            setHeroLocation(Hero.ELF, 100, 200);
+            setHeroLocation(Hero.DWARF, 100, 100);
+            setHeroLocation(Hero.BARBARIAN, 200, 100);
             // TODO: Add other game-starting logic.
             setInterval(updateTimer, 1000);
             break;
@@ -78,13 +82,13 @@ figma.ui.onmessage = msg => {
     // keep running, which shows the cancel button at the bottom of the screen.
     // figma.closePlugin();
 };
-var Directions;
-(function (Directions) {
-    Directions[Directions["UP"] = 0] = "UP";
-    Directions[Directions["DOWN"] = 1] = "DOWN";
-    Directions[Directions["LEFT"] = 2] = "LEFT";
-    Directions[Directions["RIGHT"] = 3] = "RIGHT";
-})(Directions || (Directions = {}));
+var Direction;
+(function (Direction) {
+    Direction[Direction["UP"] = 0] = "UP";
+    Direction[Direction["DOWN"] = 1] = "DOWN";
+    Direction[Direction["LEFT"] = 2] = "LEFT";
+    Direction[Direction["RIGHT"] = 3] = "RIGHT";
+})(Direction || (Direction = {}));
 var Hero;
 (function (Hero) {
     Hero[Hero["MAGE"] = 0] = "MAGE";
@@ -143,6 +147,20 @@ const heroToHeroName = (hero) => {
             throw Error("uh-oh");
     }
 };
+const heroNameToHero = (heroName) => {
+    if (heroName == "Mage") {
+        return Hero.MAGE;
+    }
+    else if (heroName == "Elf") {
+        return Hero.ELF;
+    }
+    else if (heroName == "Barbarian") {
+        return Hero.BARBARIAN;
+    }
+    else if (heroName == "Dwarf") {
+        return Hero.DWARF;
+    }
+};
 const getGamepageNode = () => {
     for (const page of figma.root.children) {
         if (page.name == GAME_PAGENAME) {
@@ -197,14 +215,34 @@ const getHeroNode = (hero) => {
         }
     }
 };
-const moveTile = (tile, x, y) => {
+const setTileLocation = (tile, x, y) => {
     tile.x = x;
     tile.y = y;
 };
 // This function is used to place the hero on the tile at (x, y)
-// where (x, y) is the location of the top left corner.
-const moveHero = (hero, x, y) => {
+// where (x, y) is the location of the top left corner. This should
+// be used with portals and starting locations.
+const setHeroLocation = (hero, x, y) => {
     let heroNode = getHeroNode(hero);
     heroNode.x = x + 10;
     heroNode.y = y + 10;
+};
+const moveHero = (hero, dir) => {
+    let heroNode = getHeroNode(hero);
+    switch (dir) {
+        case Direction.UP:
+            heroNode.y = heroNode.y - 100;
+            break;
+        case Direction.DOWN:
+            heroNode.y = heroNode.y + 100;
+            break;
+        case Direction.LEFT:
+            heroNode.x = heroNode.x - 100;
+            break;
+        case Direction.RIGHT:
+            heroNode.x = heroNode.x + 100;
+            break;
+    }
+};
+const ensureNoHeroCollision = () => {
 };

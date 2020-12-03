@@ -13,10 +13,10 @@
 
   <h3> Select the hero you want to move </h3>
   <div class="hero">
-    <button type="button" onclick="selectHero('mage')">Mage</button>
-    <button type="button" onclick="selectHero('barbarian')">Barbarian</button>
-    <button type="button" onclick="selectHero('elf')">Elf</button>
-    <button type="button" onclick="selectHero('dwarf')">Dwarf</button>
+    <input type="radio" name="hero" checked="true" onclick="selectHero('Mage')">Mage</button>
+    <input type="radio" name="hero" onclick="selectHero('Barbarian')">Barbarian</button>
+    <input type="radio" name="hero" onclick="selectHero('Elf')">Elf</button>
+    <input type="radio" name="hero" onclick="selectHero('Dwarf')">Dwarf</button>
   </div>
 
   <h3> Select the action you want to take </h3>
@@ -30,7 +30,7 @@
 
 <script>
   var numPlayers = 0;
-  var selectedHero = "mage";
+  var selectedHero = "Mage";
 
   const sendMessage = (type) => {
     parent.postMessage({ pluginMessage: { type: type }}, '*')

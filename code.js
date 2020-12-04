@@ -27,6 +27,19 @@ figma.ui.onmessage = msg => {
             // Logic to move down
             moveHero(heroNameToHero(msg.hero), Direction.DOWN);
             break;
+        case 'explore':
+            if (msg.direction == "right") {
+                exploreTile(Direction.RIGHT, -400, -400);
+            }
+            else if (msg.direction == "left") {
+                exploreTile(Direction.LEFT, -400, -400);
+            }
+            else if (msg.direction == "up") {
+                exploreTile(Direction.UP, -400, -400);
+            }
+            else if (msg.direction == "down") {
+                exploreTile(Direction.DOWN, -400, -400);
+            }
         // Handle allowed direction selection.
         case 'select-up':
             gameState.allowedDirections.push(Direction.UP);
@@ -62,20 +75,21 @@ figma.ui.onmessage = msg => {
             var tile = getGameTile(1);
             setTileLocation(tile, 0, 0);
             // 2. Shuffle and flip over all the other tiles and move them to the side.
-            shuffleGameTiles();
             for (let i = 2; i <= gameState.numTiles; i++) {
                 hideGameTile(i);
                 tile = getGameTile(i);
                 setTileLocation(tile, -1200, -1200);
             }
+            shuffleGameTiles();
             // 3. Place the heros on the starting tile.
             // TODO: randomize starting position
+            // TODO: make sure they're at the top
             setHeroLocation(Hero.MAGE, 200, 200);
             setHeroLocation(Hero.ELF, 100, 200);
             setHeroLocation(Hero.DWARF, 100, 100);
             setHeroLocation(Hero.BARBARIAN, 200, 100);
             // TODO: Add other game-starting logic.
-            setInterval(updateTimer, 1000);
+            // setInterval(updateTimer, 1000)
             break;
     }
     // Make sure to close the plugin when you're done. Otherwise the plugin will
@@ -96,6 +110,11 @@ var Hero;
     Hero[Hero["BARBARIAN"] = 2] = "BARBARIAN";
     Hero[Hero["DWARF"] = 3] = "DWARF"; // orange
 })(Hero || (Hero = {}));
+var Tile;
+(function (Tile) {
+    Tile[Tile["NONE"] = 0] = "NONE";
+    Tile[Tile["EXPLORE"] = 1] = "EXPLORE";
+})(Tile || (Tile = {}));
 const GAME_PAGENAME = "Game (play here)";
 const gameState = {
     allowedDirections: [],
@@ -194,6 +213,7 @@ const hideGameTile = (i) => {
     var tile = getGameTile(i);
     tile.children[18].visible = true;
 };
+// TODO: the game tiles must be the bottom N tiles right now
 const shuffleGameTiles = () => {
     const page = getGamepageNode();
     let arr = Array.from(page.children);
@@ -229,20 +249,121 @@ const setHeroLocation = (hero, x, y) => {
 };
 const moveHero = (hero, dir) => {
     let heroNode = getHeroNode(hero);
+    let invalidMove = false;
+    let destX = heroNode.x;
+    let destY = heroNode.y;
     switch (dir) {
         case Direction.UP:
-            heroNode.y = heroNode.y - 100;
+            destY = heroNode.y - 100;
             break;
         case Direction.DOWN:
-            heroNode.y = heroNode.y + 100;
+            destY = heroNode.y + 100;
             break;
         case Direction.LEFT:
-            heroNode.x = heroNode.x - 100;
+            destX = heroNode.x - 100;
             break;
         case Direction.RIGHT:
-            heroNode.x = heroNode.x + 100;
+            destX = heroNode.x + 100;
             break;
     }
+    // Check if we landed on an explore tile
+    // Check for invalid things
+    if (!invalidMove) {
+        heroNode.x = destX;
+        heroNode.y = destY;
+    }
 };
-const ensureNoHeroCollision = () => {
+// Flip over the next tile and place it such that the arrow is facing
+// dir and is located at (x, y)
+const exploreTile = (exploreDirection, x, y) => {
+    let page = getGamepageNode();
+    let exploredTile;
+    // 1. Flip over the next tile
+    for (const node of page.children) {
+        const i = parseInt(node.name);
+        if (node.type != "INSTANCE" || i < 1 || i > gameState.numTiles) {
+            continue;
+        }
+        // If the cover is on, remove it.
+        if (node.children[18].visible) {
+            exploredTile = node;
+            node.children[18].visible = false;
+            break;
+        }
+    }
+    // 2. Determine where the arrow is and where it's facing
+    let arrowCell;
+    let arrowDirection;
+    for (const node of exploredTile.children) {
+        // This is a tile
+        if (node.type != "GROUP") {
+            continue;
+        }
+        arrowCell = node;
+        let tileType = node.children[1].name.split('/');
+        // If this is an explore tile
+        if (tileType.length == 2 && tileType[0] == "Arrow") {
+            arrowDirection = tileType[1];
+            break;
+        }
+    }
+    // 3. Rotate the arrow so that it's pointing in the same direction as dir
+    // TODO: don't just use conditionals lol
+    switch (exploreDirection) {
+        case Direction.RIGHT:
+            setTileLocation(exploredTile, x, y + 300);
+            if (arrowDirection == "Up") {
+                exploredTile.rotation = -90;
+            }
+            else if (arrowDirection == "Left") {
+                exploredTile.rotation = 180;
+                exploredTile.y = exploredTile.y;
+            }
+            else if (arrowDirection == "Down") {
+                exploredTile.rotation = 90;
+            }
+            break;
+        case Direction.LEFT:
+            setTileLocation(exploredTile, x, y + 200);
+            if (arrowDirection == "Up") {
+                exploredTile.rotation = -90;
+            }
+            else if (arrowDirection == "Down") {
+                exploredTile.rotation = 90;
+            }
+            else if (arrowDirection == "Right") {
+                exploredTile.rotation = 180;
+            }
+            break;
+        case Direction.UP:
+            setTileLocation(exploredTile, x + 300, y - 400);
+            if (arrowDirection == "Left") {
+                exploredTile.rotation = -90;
+            }
+            else if (arrowDirection == "Down") {
+                exploredTile.rotation = 180;
+            }
+            else if (arrowDirection == "Right") {
+                exploredTile.rotation = 90;
+            }
+            break;
+        case Direction.DOWN:
+            setTileLocation(exploredTile, x - 200, y + 500);
+            if (arrowDirection == "Up") {
+                exploredTile.rotation = 180;
+            }
+            else if (arrowDirection == "Left") {
+                exploredTile.rotation = 90;
+            }
+            else if (arrowDirection == "Right") {
+                exploredTile.rotation = -90;
+            }
+            break;
+    }
+    console.log(arrowDirection, exploredTile.x, exploredTile.y, arrowCell.x, arrowCell.y);
 };
+// 1. Determine which side you’re expanding on (need tile rotation and explore property)
+// 2. Check every tile to see what arrow you have
+// 3. Based on the arrow direction, rotate it
+// 4. Determine offset between arrow and top left
+// 5. Set tile to be one space to the right (on the side you’re expanding on)

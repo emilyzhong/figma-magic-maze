@@ -25,6 +25,10 @@
     <button type="button" onclick="moveHero('down')">Down</button>
     <button type="button" onclick="moveHero('left')">Left</button>
     <button type="button" onclick="moveHero('right')">Right</button>
+    <button type="button" onclick="explore('right')">Explore Right</button>
+    <button type="button" onclick="explore('left')">Explore Left</button>
+    <button type="button" onclick="explore('up')">Explore Up</button>
+    <button type="button" onclick="explore('down')">Explore Down</button>
   </div>
 </div>
 
@@ -38,6 +42,13 @@
 
   const selectHero = (hero) => {
     selectedHero = hero
+  }
+
+  const explore = (direction) => {
+    parent.postMessage({ pluginMessage: {
+      type: `explore`,
+      direction: direction
+    }}, '*')
   }
 
   const moveHero = (direction) => {
